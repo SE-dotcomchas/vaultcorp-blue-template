@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vaultcorp
+  labels:
+    app: vaultcorp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vaultcorp
+  template:
+    metadata:
+      labels:
+        app: vaultcorp
+    spec:
+      serviceAccountName: default
+      containers:
+      - name: vaultcorp
+        image: europe-west1-docker.pkg.dev/chas-devsecops-2026/vaultcorp/app:vulnerable
+        ports:
+        - containerPort: 5000
+        securityContext:
+          privileged: true
+          runAsUser: 0
+        env:
+        - name: SECRET_KEY
+          value: "supersecret123"
+        - name: DB_PASSWORD
+          value: "admin1234"
+        - name: WALLET_PRIVATE_KEY
+          value: "0xdeadbeef1337cafebabe"
+        - name: ENVIRONMENT
+          value: "production"
