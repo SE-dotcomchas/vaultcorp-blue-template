@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: vaultcorp-blue-X      # Byt X till ert team-nummer (1 eller 2)
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/joline-stromberg/vaultcorp-blue-template
+    targetRevision: main
+    path: manifests
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: blue-X           # Byt X till ert nummer
+  syncPolicy:
+    automated:
+      selfHeal: true            # VIKTIGT: reverterar manuella ändringar
+      prune: true
