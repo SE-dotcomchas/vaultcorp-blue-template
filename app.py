@@ -1,5 +1,8 @@
 from flask import Flask, request, render_template_string
 import os
+import re
+
+WALLET_RE = re.compile(r"^[A-Fa-f0-9]{8,128}$")
 
 app = Flask(__name__)
 # fix: aktivera autoescape globalt för alla render_template_string-anrop (skyddar mot XSS)
@@ -99,11 +102,17 @@ def home():
 
 @app.route('/lookup')
 def lookup():
-    wallet = request.args.get('wallet', '')
-    # fix: ingen shell-exekvering — bygg resultatsträng direkt i Python
-    result = f'Looking up wallet: {wallet}'
-    return render_template_string(LOOKUP_PAGE, wallet=wallet, result=result)
+    wallet = request.args.get('wallet', '').strip()
 
+    if not WALLET_RE.fullmatch(wallet):
+        return render_template_string(
+            LOOKUP_PAGE,
+            wallet=wallet,
+            result='Invalid wallet format',
+        ), 400
+
+    result = f"Looking up wallet: {wallet}"
+    return render_template_string(LOOKUP_PAGE, wallet=wallet, result=result)
 
 @app.route('/health')
 def health():
@@ -118,6 +127,10 @@ def status():
     'version': '1.0.0',
   }, 200
 
+
+@app.route('/debug')
+def debug():
+    return "disabled", 403
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
