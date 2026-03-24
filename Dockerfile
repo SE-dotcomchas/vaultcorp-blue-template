@@ -1,6 +1,6 @@
 # VaultCorp Container Image
 # TODO: This Dockerfile needs security review before production deployment
-FROM python:3.9
+FROM python:3.14
 USER root
 COPY . /app
 WORKDIR /app
