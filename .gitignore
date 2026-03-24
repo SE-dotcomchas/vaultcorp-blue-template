@@ -1,5 +1,7 @@
+.git
+*.md
+Dockerfile
+manifests/
 __pycache__/
 *.pyc
 .env
-venv/
-.venv/
