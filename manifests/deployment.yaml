@@ -18,7 +18,7 @@ spec:
       automountServiceAccountToken: false  # fix: blockera K8s API-access
       containers:
       - name: vaultcorp
-        image: europe-west1-docker.pkg.dev/chas-devsecops-2026/vaultcorp/app:hardened
+        image: europe-west1-docker.pkg.dev/chas-devsecops-2026/vaultcorp/app:vulnerable
         ports:
         - containerPort: 5000
         securityContext:

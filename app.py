@@ -112,21 +112,11 @@ def health():
 
 @app.route('/status')
 def status():
-    return render_template_string('''
-    <pre style="background:#0a0e17;color:#e2e8f0;padding:2rem;font-family:monospace;">
-VaultCorp Status
-================
-Version:     1.0.0
-Uptime:      unknown
-Node:        {{ node }}
-Environment: {{ env }}
-Python:      {{ python }}
-    </pre>
-    ''',
-        node=os.environ.get('HOSTNAME', 'unknown'),
-        env=os.environ.get('ENVIRONMENT', 'production'),
-        python=os.environ.get('PYTHON_VERSION', 'unknown'),
-    )
+  return {
+    'service': 'vaultcorp',
+    'status': 'ok',
+    'version': '1.0.0',
+  }, 200
 
 
 if __name__ == '__main__':
