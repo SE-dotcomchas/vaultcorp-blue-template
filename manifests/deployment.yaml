@@ -14,21 +14,55 @@ spec:
       labels:
         app: vaultcorp
     spec:
-      serviceAccountName: default
+      serviceAccountName: default          # TODO: skapa dedikerat SA utan permissions
+      automountServiceAccountToken: false  # fix: blockera K8s API-access
       containers:
       - name: vaultcorp
-        image: europe-west1-docker.pkg.dev/chas-devsecops-2026/vaultcorp/app:vulnerable
+        image: europe-west1-docker.pkg.dev/chas-devsecops-2026/vaultcorp/app:hardened
         ports:
         - containerPort: 5000
         securityContext:
-          privileged: true
-          runAsUser: 0
+          privileged: false                # fix: ta bort privileged
+          runAsNonRoot: true               # fix: tvinga non-root
+          runAsUser: 1000                  # fix: explicit non-root uid
+          allowPrivilegeEscalation: false  # fix: blockera sudo/setuid
+          readOnlyRootFilesystem: true     # bonus: read-only container fs
+          capabilities:
+            drop: ["ALL"]                  # bonus: ta bort alla Linux capabilities
         env:
         - name: SECRET_KEY
-          value: "supersecret123"
+          valueFrom:
+            secretKeyRef:
+              name: vaultcorp-secrets
+              key: SECRET_KEY
         - name: DB_PASSWORD
-          value: "admin1234"
+          valueFrom:
+            secretKeyRef:
+              name: vaultcorp-secrets
+              key: DB_PASSWORD
         - name: WALLET_PRIVATE_KEY
-          value: "0xdeadbeef1337cafebabe"
+          valueFrom:
+            secretKeyRef:
+              name: vaultcorp-secrets
+              key: WALLET_PRIVATE_KEY
         - name: ENVIRONMENT
           value: "production"
+        resources:                         # fix: resource limits
+          requests:
+            memory: "64Mi"
+            cpu: "100m"
+          limits:
+            memory: "128Mi"
+            cpu: "200m"
+        livenessProbe:                     # fix: health probes
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 3
+          periodSeconds: 5
