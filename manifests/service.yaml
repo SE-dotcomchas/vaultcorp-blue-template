@@ -5,7 +5,7 @@ metadata:
   labels:
     app: vaultcorp
 spec:
-  type: NodePort
+  type: ClusterIP  # fix: NodePort → ClusterIP, exponera inte direkt på nod-IP
   selector:
     app: vaultcorp
   ports:
