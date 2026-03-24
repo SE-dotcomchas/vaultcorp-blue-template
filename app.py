@@ -1,8 +1,9 @@
 from flask import Flask, request, render_template_string
 import os
-import subprocess
 
 app = Flask(__name__)
+# fix: aktivera autoescape globalt för alla render_template_string-anrop (skyddar mot XSS)
+app.jinja_env.autoescape = True
 
 HOMEPAGE = '''
 <!DOCTYPE html>
@@ -49,13 +50,12 @@ HOMEPAGE = '''
 
     <div class="card">
       <p><span class="status">&#9679;</span> System Online</p>
-      <p style="color: #64748b; font-size: 0.85rem; margin-top: 0.5rem;">Node: {{ node }} | Version: 0.1.0-INSECURE</p>
+      <p style="color: #64748b; font-size: 0.85rem; margin-top: 0.5rem;">Node: {{ node }} | Version: 1.0.0</p>
     </div>
 
     <div class="links">
       <a href="/status">/status</a>
       <a href="/health">/health</a>
-      <a href="/debug">/debug</a>
     </div>
   </div>
 </body>
@@ -100,9 +100,8 @@ def home():
 @app.route('/lookup')
 def lookup():
     wallet = request.args.get('wallet', '')
-    # VULN: command injection via user input passed to shell
-    result = subprocess.getoutput(f'echo "Looking up wallet: {wallet}"')
-    # VULN: XSS — wallet is rendered unescaped via render_template_string
+    # fix: ingen shell-exekvering — bygg resultatsträng direkt i Python
+    result = f'Looking up wallet: {wallet}'
     return render_template_string(LOOKUP_PAGE, wallet=wallet, result=result)
 
 
@@ -117,7 +116,7 @@ def status():
     <pre style="background:#0a0e17;color:#e2e8f0;padding:2rem;font-family:monospace;">
 VaultCorp Status
 ================
-Version:     0.1.0-INSECURE
+Version:     1.0.0
 Uptime:      unknown
 Node:        {{ node }}
 Environment: {{ env }}
@@ -128,19 +127,6 @@ Python:      {{ python }}
         env=os.environ.get('ENVIRONMENT', 'production'),
         python=os.environ.get('PYTHON_VERSION', 'unknown'),
     )
-
-
-@app.route('/debug')
-def debug():
-    # VULN: debug endpoint exposes ALL environment variables including secrets
-    envs = '\n'.join(f'{k}={v}' for k, v in sorted(os.environ.items()))
-    return f'''
-    <pre style="background:#0a0e17;color:#f59e0b;padding:2rem;font-family:monospace;">
-DEBUG — Environment Variables
-=============================
-{envs}
-    </pre>
-    '''
 
 
 if __name__ == '__main__':
