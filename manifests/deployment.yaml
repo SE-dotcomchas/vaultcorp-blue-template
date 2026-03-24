@@ -14,7 +14,7 @@ spec:
       labels:
         app: vaultcorp
     spec:
-      serviceAccountName: default          # TODO: skapa dedikerat SA utan permissions
+      serviceAccountName: vaultcorp         # fix: dedikerat SA utan permissions
       automountServiceAccountToken: false  # fix: blockera K8s API-access
       containers:
       - name: vaultcorp

@@ -17,4 +17,5 @@ COPY app.py .
 USER app
 
 EXPOSE 5000
-CMD ["python", "app.py"]
+# fix: använd Gunicorn (produktions-WSGI-server) istället för Flask dev-server
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "2", "app:app"]
